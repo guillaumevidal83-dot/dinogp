@@ -97,7 +97,84 @@ function makeWheel(r, w, opt = {}) {
 }
 
 /* ===================== Karts ===================== */
-export function makeKart(vehIdx, color) {
+
+/* ===================== Bateaux (carte marine) ===================== */
+function makeBoat(vehIdx, color) {
+  const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
+  const P = paint(color), dk = std('#23262b', 0.6, 0.4), chrome = std('#d4d7dc', 0.2, 1), white = std('#f4f6f8', 0.45, 0.1), wood = std('#8a5a32', 0.85);
+  const props = [];
+  const out = { root, body, wheels: [], props, seat: new THREE.Vector3(0, 0.88, -0.4), exhaust: new THREE.Vector3(0, 0.9, -2.6), len: 5.2, wheelOnWheel: null };
+  const outboard = (x, z, s = 1) => {
+    box(dk, 0.55 * s, 0.7 * s, 0.6 * s, x, 0.95, z, body);
+    cyl(dk, 0.09 * s, 0.09 * s, 1.2 * s, x, 0.25, z - 0.12, body, 8);
+    const g = new THREE.Group(); g.position.set(x, -0.3, z - 0.3); body.add(g);
+    for (let i = 0; i < 3; i++) { const b = box(chrome, 0.05, 0.55 * s, 0.05, 0, 0, 0, g); b.rotation.z = (i * TAU) / 3; }
+    props.push(g);
+  };
+  switch (vehIdx) {
+    case 0: { // Canot safari
+      ell(P, 1.2, 0.62, 2.6, 0, 0.33, 0, body);
+      box(white, 1.95, 0.1, 3.9, 0, 0.8, -0.1, body);
+      box(dk, 1.0, 0.35, 0.7, 0, 1.0, -0.95, body);
+      const ws = box(glass(), 1.8, 0.7, 0.05, 0, 1.25, 1.0, body); ws.rotation.x = -0.3; ws.castShadow = false;
+      box(P, 0.1, 0.6, 1.4, 0.95, 1.1, -0.2, body); box(P, 0.1, 0.6, 1.4, -0.95, 1.1, -0.2, body);
+      box(P, 2.0, 0.1, 1.5, 0, 1.45, -0.3, body); // auvent
+      outboard(0, -2.65);
+      out.seat.set(0, 0.86, -0.4); out.len = 5.4;
+      break;
+    }
+    case 1: { // Hors-bord éclair
+      ell(P, 0.95, 0.5, 3.3, 0, 0.3, 0, body);
+      coneM(P, 0.85, 2.0, 0, 0.32, 3.7, Math.PI / 2, 0, 0, body, 10).scale.set(1, 1, 0.55);
+      box(white, 0.5, 0.05, 5.2, 0, 0.8, 0.3, body);
+      box(dk, 1.3, 0.1, 1.6, 0, 0.74, -0.7, body);
+      const ws = box(glass(), 1.4, 0.55, 0.05, 0, 1.1, 0.85, body); ws.rotation.x = -0.45; ws.castShadow = false;
+      box(P, 0.08, 1.0, 1.1, 0, 1.2, -2.7, body); // aileron
+      outboard(0.45, -3.4, 0.9); outboard(-0.45, -3.4, 0.9);
+      out.seat.set(0, 0.8, -0.6); out.exhaust.set(0, 0.9, -3.8); out.len = 7.2;
+      break;
+    }
+    case 2: { // Catamaran monster
+      for (const s of [-1, 1]) { cyl(P, 0.62, 0.62, 5.2, s * 1.35, 0.42, 0, body, 14).rotation.x = Math.PI / 2; coneM(P, 0.62, 1.2, s * 1.35, 0.42, 3.3, Math.PI / 2, 0, 0, body, 14); }
+      box(dk, 3.7, 0.22, 4.3, 0, 1.05, -0.2, body);
+      box(wood, 3.3, 0.06, 3.9, 0, 1.2, -0.2, body);
+      for (const s of [-1, 1]) { box(chrome, 0.12, 1.5, 0.12, s * 1.4, 1.95, 0.9, body); box(chrome, 0.12, 1.5, 0.12, s * 1.4, 1.95, -1.4, body); }
+      box(chrome, 2.9, 0.12, 0.12, 0, 2.7, 0.9, body); box(chrome, 2.9, 0.12, 0.12, 0, 2.7, -1.4, body);
+      outboard(1.0, -2.55, 1.2); outboard(-1.0, -2.55, 1.2);
+      out.seat.set(0, 1.2, -0.3); out.exhaust.set(0, 1.2, -2.9); out.len = 6.4;
+      break;
+    }
+    case 3: { // Jet-ski
+      ell(P, 0.72, 0.42, 2.2, 0, 0.35, 0, body);
+      coneM(P, 0.62, 1.4, 0, 0.45, 2.5, Math.PI / 2, 0, 0, body, 10).scale.set(1, 1, 0.5);
+      box(white, 0.5, 0.06, 2.8, 0, 0.78, 0, body);
+      box(dk, 0.55, 0.3, 1.3, 0, 0.88, -0.75, body);
+      box(dk, 0.9, 0.08, 0.1, 0, 1.2, 0.85, body); cyl(dk, 0.05, 0.05, 0.45, 0, 1.0, 0.85, body, 6);
+      const ws = box(glass(), 0.8, 0.45, 0.05, 0, 1.2, 1.3, body); ws.rotation.x = -0.5; ws.castShadow = false;
+      cyl(chrome, 0.2, 0.26, 0.5, 0, 0.45, -2.35, body, 10).rotation.x = Math.PI / 2;
+      out.seat.set(0, 0.92, -0.55); out.exhaust.set(0, 0.5, -2.7); out.len = 4.6;
+      break;
+    }
+    default: { // Pirogue de pierre
+      const stone = std('#8c7b66', 0.95);
+      ell(stone, 1.25, 0.58, 2.6, 0, 0.32, 0, body);
+      ell(wood, 1.05, 0.14, 2.3, 0, 0.8, 0, body);
+      const rr = mulberry32(9);
+      for (let i = 0; i < 7; i++) { const m = new THREE.Mesh(new THREE.DodecahedronGeometry(0.28 + rr() * 0.12, 0), stone); m.position.set((rr() < 0.5 ? -1 : 1) * 1.05, 0.55 + rr() * 0.1, -1.8 + i * 0.6); m.castShadow = true; body.add(m); }
+      coneM(P, 0.4, 1.6, 0, 1.0, 2.7, -0.6, 0, 0, body, 6); // proue sculptée
+      box(P, 0.9, 0.55, 0.12, 0, 1.2, 2.3, body);
+      for (const s of [-1, 1]) { cyl(wood, 0.05, 0.05, 2.6, s * 1.2, 1.1, -0.3, body, 6).rotation.z = s * 0.7; box(wood, 0.5, 0.05, 0.9, s * 2.2, 0.35, -0.3, body); }
+      out.seat.set(0, 0.84, -0.3); out.exhaust.set(0, 0.9, -2.5); out.len = 5.4;
+    }
+  }
+  const sh = new THREE.Mesh(new THREE.SphereGeometry(3.6, 20, 14), new THREE.MeshBasicMaterial({ color: 0x66ccff, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending }));
+  sh.position.y = 1.3; sh.visible = false; root.add(sh);
+  out.shield = sh;
+  return out;
+}
+
+export function makeKart(vehIdx, color, asBoat) {
+  if (asBoat) return makeBoat(vehIdx, color);
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
@@ -208,6 +285,7 @@ export function makeKart(vehIdx, color) {
 }
 
 export function animateKart(k, dt, v, steer) {
+  if (k.props) for (const p of k.props) p.rotation.z += dt * (14 + Math.abs(v) * 0.9);
   for (const w of k.wheels) {
     w.spin.rotation.x += (v * dt) / w.r;
     if (w.front) w.pivot.rotation.y = -steer * 0.5;

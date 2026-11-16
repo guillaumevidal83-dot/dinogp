@@ -140,8 +140,8 @@
       },
     },
     lagoon: {
-      id: 'lagoon', name: 'Lagon des Abysses', desc: 'Une piste de bois sur l\'océan ! Mosasaures bondissants, plésiosaures et spinosaures.',
-      R: 330, sx: 1.15, sz: 0.9, harm: [[2, 0.15, 1.0], [3, 0.14, 2.4], [5, 0.07, 0.8], [7, 0.028, 2.2]], width: 28, grip: 0.9, wall: 5.5,
+      id: 'lagoon', name: 'Lagon des Abysses', desc: 'Course en BATEAU sur l\'océan ! Mosasaures bondissants, plésiosaures et spinosaures.',
+      R: 330, sx: 1.15, sz: 0.9, harm: [[2, 0.15, 1.0], [3, 0.14, 2.4], [5, 0.07, 0.8], [7, 0.028, 2.2]], width: 30, grip: 0.8, wall: 7,
       dinos: [
         { k: 'ichthy', s: 0.06, L: 80 }, { k: 'plesio', s: 0.16 }, { k: 'spino', s: 0.27, side: -1 }, { k: 'mosa', s: 0.37 },
         { k: 'ichthy', s: 0.49, L: 100 }, { k: 'spino', s: 0.6, side: 1 }, { k: 'mosa', s: 0.71 }, { k: 'plesio', s: 0.81 }, { k: 'mosa', s: 0.91 },

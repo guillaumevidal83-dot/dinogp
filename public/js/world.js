@@ -324,8 +324,8 @@ export function buildWorld(renderer, mapId, q) {
   // îlots de sable près de la piste (carte marine)
   const islets = [];
   if (th.sea) for (let k = 0; k < 16; k++) {
-    const i = ((k + rnd() * 0.6) / 16) * T.N, side = k % 2 ? 1 : -1, p = S.trackPos(T, i, side * (T.halfW + 38 + rnd() * 40));
-    islets.push({ x: p.x, z: p.z, r: 15 + rnd() * 14, h: 3 + rnd() * 2.5 });
+    const i = ((k + rnd() * 0.6) / 16) * T.N, side = k % 2 ? 1 : -1, p = S.trackPos(T, i, side * (T.halfW + 72 + rnd() * 40));
+    islets.push({ x: p.x, z: p.z, r: 12 + rnd() * 10, h: 3 + rnd() * 2.5 });
   }
   const heightAt = (x, z) => {
     const d = dist(x, z) - T.halfW;
@@ -333,8 +333,9 @@ export function buildWorld(renderer, mapId, q) {
       const n = fbm(x * 0.006 + 3, z * 0.006 - 5, 5, 4);
       let hi = (n - 0.5) * 24 - 5.5;
       if (hi > -3) hi = -3 + (hi + 3) * smooth(d, 60, 110);
-      for (const o of islets) { const e = Math.hypot(x - o.x, z - o.z) / o.r; if (e < 1.6) hi = Math.max(hi, -4 + (o.h + 4) * Math.exp(-e * e * 1.6)); }
-      return hi * smooth(d, 5, 13) + 0 * (1 - smooth(d, 5, 13)) ;
+      for (const o of islets) { const e = Math.hypot(x - o.x, z - o.z) / o.r; if (e < 1.5) hi = Math.max(hi, -4 + (o.h + 4) * Math.exp(-e * e * 1.6)); }
+      const lane = -3.4 - 0.3 * fbm(x * 0.03, z * 0.03, 2, 3);
+      return lane + (Math.min(hi, 6) - lane) * smooth(d, 16, 44);
     }
     const f = smooth(d, 24, 120);
     if (f <= 0) return 0;
@@ -414,23 +415,19 @@ export function buildWorld(renderer, mapId, q) {
   };
   const hw = T.halfW;
   const rt0 = roadTexture(th, map.width);
-  ribbon(-hw, hw, 0.05, map.width * 2, new THREE.MeshStandardMaterial({ map: rt0, bumpMap: rt0, bumpScale: 0.6, roughness: th.road === 'asphalt' ? 0.85 : 0.95, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+  if (!th.sea) ribbon(-hw, hw, 0.05, map.width * 2, new THREE.MeshStandardMaterial({ map: rt0, bumpMap: rt0, bumpScale: 0.6, roughness: th.road === 'asphalt' ? 0.85 : 0.95, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
   // accotements
   const vt = groundTexture({ gA: th.gB, gB: th.gB, gC: th.gA });
   const vm = new THREE.MeshStandardMaterial({ map: vt, color: new THREE.Color(th.road === 'snow' ? '#dfe8ef' : '#b8a888'), roughness: 1, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-  if (th.sea) {
-    const wt = woodTexture();
-    const wm = new THREE.MeshStandardMaterial({ map: wt, bumpMap: wt, bumpScale: 0.8, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-    ribbon(-hw - 5.2, -hw, 0.03, 10, wm); ribbon(hw, hw + 5.2, 0.03, 10, wm);
-  } else { ribbon(-hw - 9, -hw, 0.03, 18, vm); ribbon(hw, hw + 9, 0.03, 18, vm); }
+  if (!th.sea) { ribbon(-hw - 9, -hw, 0.03, 18, vm); ribbon(hw, hw + 9, 0.03, 18, vm); }
   // vibreurs
   const ct = curbTexture(th.curb);
   const cm = new THREE.MeshStandardMaterial({ map: ct, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
-  ribbon(-hw - 1.6, -hw, 0.08, 5, cm); ribbon(hw, hw + 1.6, 0.08, 5, cm);
+  if (!th.sea) { ribbon(-hw - 1.6, -hw, 0.08, 5, cm); ribbon(hw, hw + 1.6, 0.08, 5, cm); }
 
   /* arche de départ */
   const arch = new THREE.Group();
-  arch.position.set(T.x[0], 0, T.z[0]); arch.rotation.y = T.h[0];
+  arch.position.set(T.x[0], th.sea ? th.waterY : 0, T.z[0]); arch.rotation.y = T.h[0];
   const pm1 = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.6, metalness: 0.4 });
   for (const s of [-1, 1]) {
     const p = new THREE.Mesh(new THREE.BoxGeometry(1.8, 11, 1.8), pm1); p.position.set(s * (hw + 2), 5.5, 0); p.castShadow = true; arch.add(p);
@@ -443,7 +440,7 @@ export function buildWorld(renderer, mapId, q) {
   }
   const ct2 = checkerTexture(); ct2.repeat.set(hw / 4, 1);
   const line = new THREE.Mesh(new THREE.PlaneGeometry(hw * 2, 2.4), new THREE.MeshStandardMaterial({ map: ct2, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
-  line.rotation.x = -Math.PI / 2; line.position.y = 0.09; arch.add(line);
+  line.rotation.x = -Math.PI / 2; line.position.y = th.sea ? 0.12 : 0.09; arch.add(line);
   scene.add(arch);
 
   /* décor instancié */
@@ -486,10 +483,10 @@ export function buildWorld(renderer, mapId, q) {
   const sizes = { post: [1, 1], buoy: [1, 1.4], broad: [0.9, 1.7], cycad: [0.9, 1.6], fern: [0.9, 1.7], rock: [0.8, 2.6], bush: [0.9, 1.9], palm: [1.0, 1.6], conifer: [1.0, 1.8], crystal: [0.8, 2.2], dead: [0.8, 1.5], spike: [0.8, 2.0], dry: [0.9, 1.7], mesa: [0.7, 2.2] };
   for (const [type, count, mn, mx] of th.decor) { const s = sizes[type] || [1, 1.5]; scatter(type, count, mn, mx, s[0], s[1]); }
   if (th.sea) {
-    // poteaux de ponton le long de la piste
-    const posts = [];
-    for (let i = 0; i < T.N; i += 3) for (const side of [-1, 1]) { const p = S.trackPos(T, i, side * (hw + 5.6)); posts.push({ x: p.x, y: 0, z: p.z, r: rnd() * TAU, s: 1, sx: 1, v: 0.5 }); }
-    addInst('post', posts, false, false);
+    // couloir balisé par des bouées rouges et blanches
+    const lane = [];
+    for (let i = 0; i < T.N; i += 2) for (const side of [-1, 1]) { const p = S.trackPos(T, i, side * (hw + 0.3)); lane.push({ x: p.x, y: th.waterY + 0.1, z: p.z, r: 0, s: 1.15, sx: 1, v: (i / 2) % 2 ? 0.2 : 0.9 }); }
+    addInst('buoy', lane, false, false);
     // palmiers, rochers et buissons sur les îlots
     const pal = [], rks = [], bsh = [];
     for (const o of islets) {
@@ -506,10 +503,6 @@ export function buildWorld(renderer, mapId, q) {
       }
     }
     addInst('palm', pal, false, true); addInst('rock', rks, true, false); addInst('bush', bsh, false, false);
-    // bouées flottantes
-    const buoys = [];
-    for (let i = 0; i < T.N; i += 18) for (const side of [-1, 1]) { const p = S.trackPos(T, i + rnd() * 8, side * (hw + 18 + rnd() * 14)); buoys.push({ x: p.x, y: th.waterY + 0.1, z: p.z, r: rnd() * TAU, s: 1, sx: 1, v: rnd() }); }
-    addInst('buoy', buoys, false, false);
   }
   // bordure visible de la piste (barrière naturelle)
   if (th.edge) {

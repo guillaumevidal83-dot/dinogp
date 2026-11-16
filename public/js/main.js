@@ -322,13 +322,14 @@ function buildRace(L) {
   world.fx = fx;
   R = {
     world, scene, fx, T: world.T, map: S.MAPS[L.map], laps: L.laps, items: L.items, racers: new Map(), dinos: new Map(), proj: new Map(), boxes: new Map(),
+    boat: !!S.MAPS[L.map].theme.sea, sy: S.MAPS[L.map].theme.sea ? S.MAPS[L.map].theme.waterY : 0,
     go: false, cd: -1, t: 0, sendT: 0, place: 1, lap: 0, n: L.racers.length, shake: 0, meteors: [], msgT: 0, finished: false, wrong: 0, lastRank: 0, camH: 0, camInit: false,
     itemShow: { item: null, n: 0, at: 0 }, spinFx: 0, flags: 0, lapShown: 0, minimap: null, startedAt: 0,
   };
   for (const r of L.racers) {
-    const kart = M.makeKart(r.veh, S.COLORS[r.col]);
+    const kart = M.makeKart(r.veh, S.COLORS[r.col], R.boat);
     attachDriver(kart, r.ch);
-    kart.root.position.set(r.x, 0, r.z); kart.root.rotation.y = r.h;
+    kart.root.position.set(r.x, R.sy, r.z); kart.root.rotation.y = r.h;
     scene.add(kart.root);
     const o = { id: r.id, name: r.name, ch: r.ch, veh: r.veh, col: r.col, bot: r.bot, kart, buf: [], place: r.grid + 1, lap: 1, fin: 0, flags: 0, x: r.x, z: r.z, h: r.h, v: 0, st: 0, me: r.id === L.you };
     if (!o.me) { const tag = M.makeNameTag(r.name + (r.bot ? ' 🤖' : '')); tag.position.set(0, 3.9, 0); kart.root.add(tag); }
@@ -344,7 +345,7 @@ function buildRace(L) {
     R.dinos.set(d.id, { id: d.id, k: d.k, model: mdl, buf: [], anim: 0, h: 0, x: 0, z: 0, init: false, roar: 0 });
   }
   for (const b of L.boxes) {
-    const bx = M.makeItemBox(); bx.position.set(b.x, 1.9, b.z); scene.add(bx);
+    const bx = M.makeItemBox(); bx.position.set(b.x, 1.9 + R.sy, b.z); scene.add(bx);
     R.boxes.set(b.id, { id: b.id, mesh: bx, on: true, x: b.x, z: b.z, scale: 1 });
   }
   buildMinimap();
@@ -435,7 +436,7 @@ function onEvent(m) {
       const d = R.dinos.get(m.id); if (!d) break;
       d.roar = 1.4; const n = near(d.x, d.z, 220);
       sfx.play('roar', n); R.shake = Math.max(R.shake, 0.5 * n);
-      if (n > 0.35) setMsg('⚠ T-REX !', 1);
+      if (n > 0.35) setMsg('⚠ ' + S.DINOS[d.k].name.toUpperCase() + ' !', 1);
       break;
     }
     case 'meteor': {
@@ -659,7 +660,7 @@ function raceFrame(dt, now) {
   }
   // kart local
   const k = me.kart, root = k.root;
-  root.position.set(P.x, 0, P.z); root.rotation.y = P.h;
+  root.position.set(P.x, R.sy + (R.boat ? Math.sin(R.t * 2.3) * 0.07 - 0.12 : 0), P.z); root.rotation.y = P.h;
   let spinYaw = 0;
   if (P.spinT > 0) spinYaw = (1 - P.spinT / P.spinDur) * TAU * 2.5;
   k.body.rotation.y = spinYaw - P.drift * 0.32;
@@ -677,7 +678,7 @@ function raceFrame(dt, now) {
     const s = sampleBuf(r.buf, rt);
     if (!s) continue;
     const kr = r.kart, rr = kr.root;
-    rr.position.set(s.x, 0, s.z); rr.rotation.y = s.h;
+    rr.position.set(s.x, R.sy + (R.boat ? Math.sin(R.t * 2.3 + r.id) * 0.07 - 0.12 : 0), s.z); rr.rotation.y = s.h;
     const f = s.f | 0;
     kr.body.rotation.y = (f & 4 ? (now / 1000 * 11) % TAU : 0) - (f & 1 ? 0.25 * Math.sign(s.st || 0.01) : 0);
     kr.body.rotation.z = -s.st * 0.05;
@@ -701,11 +702,13 @@ function raceFrame(dt, now) {
     if (R.world.th.sea) {
       const wy = R.world.th.waterY, k = d.k;
       if (k === 'mosa' || k === 'plesio' || k === 'ichthy') {
-        // nage dans l'eau, bondit au-dessus de la piste quand il la traverse
-        const dd = R.world.dist(s.x, s.z) - R.T.halfW;
-        lift = clamp((8 - dd) / 8, 0, 1); lift = lift * lift * (3 - 2 * lift);
-        dy = wy + 0.4 + lift * (k === 'ichthy' ? 3.6 : k === 'mosa' ? 3.2 : 2.4);
-      } else dy = Math.min(0, R.world.heightAt(s.x, s.z));
+        // nage dans l'eau et bondit comme un dauphin quand il se déplace
+        const sa = Math.round(s.a), moving = sa === 1 || sa === 2;
+        const f = k === 'ichthy' ? 3.4 : k === 'mosa' ? 2.1 : 1.3, amp = k === 'ichthy' ? 3.4 : k === 'mosa' ? 3.0 : 1.2;
+        const ph = Math.sin(now / 1000 * f + d.id * 1.7);
+        lift = moving ? Math.pow(Math.max(0, ph), 1.5) : 0;
+        dy = wy + 0.3 + lift * amp;
+      } else dy = Math.max(-2.2, Math.min(0, R.world.heightAt(s.x, s.z)));
     }
     d.model.root.position.set(s.x, dy, s.z);
     d.model.root.rotation.y = s.h;
@@ -715,12 +718,12 @@ function raceFrame(dt, now) {
   // projectiles
   for (const p of R.proj.values()) {
     const age = Math.min(0.12, (now - p.t) / 1000), sp = SPEEDS[p.type] || 0;
-    p.mesh.position.set(p.x + Math.sin(p.h) * sp * age, p.type === 'bone' ? 0 : 1.3, p.z + Math.cos(p.h) * sp * age);
+    p.mesh.position.set(p.x + Math.sin(p.h) * sp * age, (p.type === 'bone' ? 0 : 1.3) + R.sy, p.z + Math.cos(p.h) * sp * age);
     p.mesh.rotation.y = p.h;
     if (p.mesh.userData.spin) { p.mesh.rotation.x += dt * p.mesh.userData.spin; }
     if (p.type === 'rock') p.mesh.rotation.z += dt * 6;
-    if (p.type === 'egg') { R.fx.trail(p.mesh.position.x, 1.3, p.mesh.position.z, [1, 0.8, 0.3, 0.8]); p.mesh.rotation.x = 0; }
-    if (p.type === 'dart') R.fx.trail(p.mesh.position.x, 1.3, p.mesh.position.z, [0.5, 1, 0.4, 0.7]);
+    if (p.type === 'egg') { R.fx.trail(p.mesh.position.x, 1.3 + R.sy, p.mesh.position.z, [1, 0.8, 0.3, 0.8]); p.mesh.rotation.x = 0; }
+    if (p.type === 'dart') R.fx.trail(p.mesh.position.x, 1.3 + R.sy, p.mesh.position.z, [0.5, 1, 0.4, 0.7]);
     if (p.type === 'bone') { const ring = p.mesh.userData.ring; if (ring) ring.material.opacity = 0.35 + Math.sin(now / 160) * 0.2; const sk = p.mesh.userData.skull; if (sk) sk.position.y = 3.4 + Math.sin(now / 260) * 0.35; }
   }
   // météorites
@@ -734,7 +737,7 @@ function raceFrame(dt, now) {
   }
   // caisses d'objets
   for (const b of R.boxes.values()) {
-    b.mesh.rotation.y += dt * 1.8; b.mesh.position.y = 1.9 + Math.sin(R.t * 2 + b.id) * 0.25;
+    b.mesh.rotation.y += dt * 1.8; b.mesh.position.y = 1.9 + R.sy + Math.sin(R.t * 2 + b.id) * 0.25;
     if (b.mesh.userData.cube) b.mesh.userData.cube.rotation.x = R.t * 0.9;
   }
   world.update(dt, { x: P.x, z: P.z });
@@ -753,7 +756,13 @@ function emitKartFx(kart, x, z, h, f, speed, steer, veh, charge) {
   const s = Math.sin(h), c = Math.cos(h);
   const wx = (lx, lz) => x + lx * c + lz * s, wz = (lx, lz) => z - lx * s + lz * c;
   const hl = (kart.len || 4.2) / 2;
-  if ((f & 8) && speed > 8 && Math.random() < 0.7) {
+  if (R.boat) {
+    if (speed > 6) {
+      const n = speed > 40 ? 2 : 1;
+      for (let i = 0; i < n; i++) for (const sx of [-1, 1]) R.fx.spray(wx(sx * 0.9, -hl * 0.55), R.sy + 0.1, wz(sx * 0.9, -hl * 0.55), -s * speed * 0.12 + sx * c * 3, -c * speed * 0.12 - sx * s * 3);
+      if (Math.random() < 0.6) R.fx.spray(wx(0, hl * 0.9), R.sy + 0.15, wz(0, hl * 0.9), s * speed * 0.05, c * speed * 0.05, [0.95, 0.98, 1, 0.5]);
+    }
+  } else if ((f & 8) && speed > 8 && Math.random() < 0.7) {
     const soil = R.map.theme.road === 'snow' ? [0.95, 0.97, 1, 0.6] : R.map.theme.gA === '#b6753f' ? [0.8, 0.55, 0.35, 0.55] : [0.62, 0.55, 0.42, 0.55];
     for (const sx of [-1, 1]) R.fx.dust(wx(sx * 1.1, -hl * 0.6), wz(sx * 1.1, -hl * 0.6), soil);
   }
@@ -780,9 +789,9 @@ function updateCamera(dt, speed, now) {
   const sx = Math.sin(R.camH), sz = Math.cos(R.camH);
   R.shake *= Math.exp(-dt * 4.5);
   const sh = R.shake;
-  camera.position.set(P.x - sx * dist + (Math.random() - 0.5) * sh * 0.7, height + (Math.random() - 0.5) * sh * 0.6, P.z - sz * dist + (Math.random() - 0.5) * sh * 0.7);
+  camera.position.set(P.x - sx * dist + (Math.random() - 0.5) * sh * 0.7, height + R.sy + (Math.random() - 0.5) * sh * 0.6, P.z - sz * dist + (Math.random() - 0.5) * sh * 0.7);
   const f = S.fwd(P.h);
-  camera.lookAt(P.x + f[0] * 6, 1.8, P.z + f[1] * 6);
+  camera.lookAt(P.x + f[0] * 6, 1.8 + R.sy, P.z + f[1] * 6);
   const targetFov = 62 + clamp(speed / 60, 0, 1.1) * 14 + (P.boostT > 0 ? 9 : 0);
   camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 4);
   camera.updateProjectionMatrix();
