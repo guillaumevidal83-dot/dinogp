@@ -3,10 +3,10 @@
 Jeu de course multijoueur 3D (navigateur, téléphone ou ordinateur) : esquive les dinosaures, ramasse des caisses d'objets et envoie-les à tes adversaires façon Mario Kart.
 
 ## Contenu
-- **5 circuits** : Jungle du Jurassique, Vallée du Volcan, Canyon du Crétacé, Toundra Glaciaire (route qui glisse), Côte des Fossiles
+- **6 circuits** : Jungle du Jurassique, Vallée du Volcan, Canyon du Crétacé, Toundra Glaciaire (route qui glisse), Côte des Fossiles et **Lagon des Abysses** (piste de bois sur l'océan)
 - **5 véhicules** (Jeep, Buggy, Monster Truck, Quad, Pierrafeu Mobile) × **6 pilotes** × 10 peintures, avec des statistiques différentes
-- **5 dinosaures** sur la piste : Tricératops, Stégosaure, Ankylosaure (traversent la route), Vélociraptor (patrouille à toute vitesse), T-Rex (embuscade quand tu approches)
-- **7 objets** : Rocher, Fléchettes ×3, Œuf chercheur, Piège à os, Turbo, Bouclier, Météorite (pour les derniers, vise le premier). Ils étourdissent les dinos **et** touchent les autres joueurs. Tir en arrière en tenant frein.
+- **9 dinosaures** sur la piste (dont **Mosasaure, Plésiosaure, Ichtyosaure et Spinosaure** sur le lagon) : Tricératops, Stégosaure, Ankylosaure (traversent la route), Vélociraptor (patrouille à toute vitesse), T-Rex (embuscade quand tu approches)
+- **7 objets** : Rocher, Fléchettes ×3, Œuf chercheur, Piège à os (se pose sur la route : qui roule dessus tourne sur lui-même), Turbo, Bouclier, Météorite (pour les derniers, vise le premier). Ils étourdissent les dinos **et** touchent les autres joueurs. Tir en arrière en tenant frein.
 - Dérapage + mini-turbo, bots (IA), salons avec code et lien d'invitation, jusqu'à 8 pilotes
 
 ## Lancer en local

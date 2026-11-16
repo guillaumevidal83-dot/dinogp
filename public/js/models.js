@@ -303,8 +303,17 @@ export function makeProjMesh(type) {
     const b1 = cyl(bm, 0.14, 0.14, 2.2, 0, 0.35, 0, g, 8); b1.rotation.z = Math.PI / 2; b1.rotation.y = 0.5;
     const b2 = cyl(bm, 0.14, 0.14, 2.2, 0, 0.35, 0, g, 8); b2.rotation.z = Math.PI / 2; b2.rotation.y = -0.5;
     for (const a of [0.5, -0.5]) for (const s of [-1, 1]) for (const k of [-0.1, 0.1]) ell(bm, 0.22, 0.22, 0.22, Math.cos(a) * s * 1.1, 0.35, -Math.sin(a) * s * 1.1 + k, g);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(1.5, 1.9, 24), new THREE.MeshBasicMaterial({ color: 0xff4d4d, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(2.3, 3.0, 32), new THREE.MeshBasicMaterial({ color: 0xff4d4d, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }));
     ring.rotation.x = -Math.PI / 2; ring.position.y = 0.08; g.add(ring); g.userData.ring = ring;
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(2.3, 32), new THREE.MeshBasicMaterial({ color: 0xff2a2a, transparent: true, opacity: 0.18, depthWrite: false }));
+    disc.rotation.x = -Math.PI / 2; disc.position.y = 0.07; g.add(disc);
+    const skull = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTex(128, 128, (c, w, h) => {
+      c.font = '88px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillStyle = '#d62828'; c.beginPath(); c.moveTo(w / 2, 6); c.lineTo(w - 6, h - 12); c.lineTo(6, h - 12); c.closePath(); c.fill();
+      c.fillStyle = '#fff'; c.fillText('☠', w / 2, h / 2 + 14);
+    }, { repeat: false }), transparent: true, depthWrite: false }));
+    skull.scale.set(2.6, 2.6, 1); skull.position.y = 3.4; g.add(skull); g.userData.skull = skull;
+    g.children.forEach((c) => { if (c.isMesh && c.geometry.type === 'CylinderGeometry' || (c.isMesh && c.geometry.type === 'SphereGeometry')) { c.position.x *= 1.6; c.position.z *= 1.6; c.scale.multiplyScalar(1.6); } });
   } else if (type === 'meteor') {
     const m = new THREE.Mesh(new THREE.IcosahedronGeometry(2.6, 2), std('#331a0c', 0.9, 0, { emissive: '#ff5a10', emissiveIntensity: 1.6, flatShading: true }));
     g.add(m); g.userData.spin = 3;
@@ -349,6 +358,10 @@ const SKINS = {
   anky: ['#a58a62', '#6e5a3d', '#c8ad82', 22],
   raptor: ['#b9602a', '#3a2314', '#e08a4a', 14],
   brachio: ['#6f8c8a', '#4a6563', '#9bb5b2', 30],
+  mosa: ['#4f7476', '#2a4547', '#86aaa6', 20],
+  ichthy: ['#6d8aa0', '#3a5468', '#b0c8d8', 26],
+  plesio: ['#8c7c5a', '#5a4d36', '#bba982', 22],
+  spino: ['#4b6e56', '#2a4235', '#86a272', 20],
 };
 const skinMats = new Map();
 function skinMat(kind, stripes) {
@@ -410,6 +423,7 @@ export function makeDino(kind) {
   const belly = std('#cdbf93', 0.9);
   const legs = [], tails = [];
   let head = null, jaw = null, topY = 6, base = 0, necks = null;
+  const fl = [], aq = kind === 'mosa' || kind === 'ichthy' || kind === 'plesio';
   const white = std('#efe8d6', 0.5);
 
   if (kind === 'trex') {
@@ -483,6 +497,58 @@ export function makeDino(kind) {
     for (const s of [-1, 1]) legs.push(legRig(body, skin, s * 0.5, -0.1, -0.3, 0.95, 0.85, 0.38, skin, 3));
     tails.push(...tailChain(body, skin, 7, 0.5, 0.95, 0, 0.1, -1.5, 0.15));
     for (let i = 0; i < 5; i++) for (const s of [-1, 1]) coneM(crest, 0.05, 0.5, s * 0.12, 0.05, -0.1, 0, 0, 0, tails[i + 1], 4).rotation.z = s * 1.2;
+  } else if (kind === 'mosa') {
+    base = 0.9; body.position.y = base; topY = 4.2;
+    ell(skin, 1.5, 1.35, 3.7, 0, 0, 0, body);
+    ell(belly, 1.2, 0.9, 3.2, 0, -0.5, 0.2, body);
+    for (let i = 0; i < 7; i++) coneM(std('#2f4c4e', 0.7), 0.16, 0.55, 0, 1.25 - i * 0.04, 2.2 - i * 0.7, 0, 0, 0, body, 4);
+    head = new THREE.Group(); head.position.set(0, 0.35, 4.3); body.add(head);
+    ell(skin, 1.0, 0.8, 1.5, 0, 0, 0.3, head); ell(skin, 0.7, 0.5, 1.6, 0, -0.12, 1.7, head);
+    jaw = new THREE.Group(); jaw.position.set(0, -0.5, 0.3); head.add(jaw);
+    ell(belly, 0.62, 0.22, 1.7, 0, 0, 1.1, jaw);
+    for (let i = 0; i < 8; i++) for (const s of [-1, 1]) { coneM(white, 0.06, 0.28, s * 0.5, 0.2, 0.7 + i * 0.28, Math.PI, 0, 0, jaw, 4); coneM(white, 0.07, 0.3, s * 0.58, -0.42, 0.6 + i * 0.3, 0, 0, 0, head, 4); }
+    for (const s of [-1, 1]) { const e = ell(glow('#ffd23f'), 0.15, 0.15, 0.1, s * 0.85, 0.3, 0.8, head); e.castShadow = false; ell(std('#111'), 0.07, 0.1, 0.05, s * 0.9, 0.3, 0.85, head); }
+    for (const [x, z, s] of [[1.2, 2.4, 1], [-1.2, 2.4, -1], [1.1, -1.2, 1], [-1.1, -1.2, -1]]) { const g = new THREE.Group(); g.position.set(x, -0.6, z); body.add(g); ell(skin, 0.2, 0.08, 1.2, s * 0.8, 0, -0.4, g); fl.push({ g, s, ph: z }); }
+    tails.push(...tailChain(body, skin, 9, 1.25, 1.6, 0, 0, -3.3, 0.12));
+    const last = tails[tails.length - 1];
+    coneM(skin, 0.3, 2.6, 0, 0.8, -1.3, -2.6, 0, 0, last, 6); coneM(skin, 0.25, 1.7, 0, -0.5, -1.3, 2.6, 0, 0, last, 6);
+  } else if (kind === 'ichthy') {
+    base = 0.7; body.position.y = base; topY = 3.2;
+    ell(skin, 0.95, 0.9, 2.7, 0, 0, 0, body); ell(belly, 0.75, 0.6, 2.4, 0, -0.35, 0.1, body);
+    head = new THREE.Group(); head.position.set(0, 0.05, 2.6); body.add(head);
+    ell(skin, 0.7, 0.65, 1.0, 0, 0, 0.2, head);
+    coneM(std('#b9c6d0', 0.5), 0.26, 2.4, 0, -0.05, 1.7, Math.PI / 2, 0, 0, head, 8);
+    for (const s of [-1, 1]) { ell(glow('#fff1b0'), 0.2, 0.2, 0.12, s * 0.62, 0.22, 0.5, head).castShadow = false; ell(std('#111'), 0.11, 0.11, 0.06, s * 0.66, 0.22, 0.55, head); }
+    coneM(skin, 0.28, 1.5, 0, 1.15, -0.2, -0.5, 0, 0, body, 4).scale.set(0.35, 1, 1);
+    for (const [x, z, s] of [[0.85, 1.3, 1], [-0.85, 1.3, -1]]) { const g = new THREE.Group(); g.position.set(x, -0.5, z); body.add(g); ell(skin, 0.14, 0.06, 0.9, s * 0.5, 0, -0.3, g); fl.push({ g, s, ph: z }); }
+    tails.push(...tailChain(body, skin, 6, 0.8, 1.3, 0, 0, -2.6, 0.14));
+    const last = tails[tails.length - 1];
+    coneM(skin, 0.2, 1.8, 0, 0.7, -0.9, -2.5, 0, 0, last, 5); coneM(skin, 0.2, 1.8, 0, -0.7, -0.9, 2.5, 0, 0, last, 5);
+  } else if (kind === 'plesio') {
+    base = 0.9; body.position.y = base; topY = 6.0;
+    ell(skin, 2.0, 1.2, 3.0, 0, 0, 0, body); ell(belly, 1.6, 0.8, 2.6, 0, -0.5, 0.1, body);
+    for (const [x, z, s] of [[1.7, 1.6, 1], [-1.7, 1.6, -1], [1.7, -1.5, 1], [-1.7, -1.5, -1]]) { const g = new THREE.Group(); g.position.set(x, -0.5, z); body.add(g); ell(skin, 0.7, 0.1, 1.9, s * 0.9, 0, -0.5, g); fl.push({ g, s, ph: z }); }
+    necks = []; let p = body;
+    for (let i = 0; i < 8; i++) { const g = new THREE.Group(); g.position.set(0, i === 0 ? 0.5 : 0.25, i === 0 ? 2.5 : 0.95); g.userData.b = i < 4 ? -0.3 : 0.32; g.rotation.x = g.userData.b; p.add(g); ell(skin, 0.55 - i * 0.035, 0.5 - i * 0.03, 0.75, 0, 0, 0.1, g); necks.push(g); p = g; }
+    head = new THREE.Group(); head.position.set(0, 0.1, 0.9); p.add(head);
+    ell(skin, 0.42, 0.34, 0.75, 0, 0, 0.2, head); ell(skin, 0.28, 0.2, 0.55, 0, -0.06, 0.8, head);
+    for (const s of [-1, 1]) { ell(glow('#ffe08a'), 0.08, 0.08, 0.06, s * 0.34, 0.14, 0.4, head).castShadow = false; }
+    tails.push(...tailChain(body, skin, 4, 0.9, 1.0, 0, 0, -2.8, 0.2));
+  } else if (kind === 'spino') {
+    base = 3.0; body.position.y = base; topY = 7.4;
+    ell(skin, 1.35, 1.55, 3.3, 0, 0.35, 0, body); ell(belly, 1.05, 1.1, 2.7, 0, -0.35, 0.2, body);
+    ell(skin, 0.85, 1.0, 1.8, 0, 1.45, 2.4, body).rotation.x = -0.4;
+    const sailM = std('#c24a2c', 0.7, 0, { side: THREE.DoubleSide });
+    for (let i = 0; i < 11; i++) { const h = 0.6 + 3.2 * Math.sin(Math.PI * (i + 0.6) / 11.6); box(sailM, 0.08, h, 0.5, 0, 1.6 + h / 2, 2.3 - i * 0.52, body); cyl(std('#7a2a18', 0.6), 0.05, 0.05, h, 0, 1.6 + h / 2, 2.3 - i * 0.52 + 0.22, body, 5); }
+    head = new THREE.Group(); head.position.set(0, 2.55, 3.9); body.add(head);
+    ell(skin, 0.8, 0.72, 1.15, 0, 0, 0.25, head); ell(skin, 0.5, 0.42, 1.9, 0, -0.12, 1.7, head);
+    coneM(std('#c24a2c', 0.6), 0.09, 0.8, 0, 0.62, 0.35, 0, 0, 0, head, 4);
+    jaw = new THREE.Group(); jaw.position.set(0, -0.45, 0.3); head.add(jaw); ell(belly, 0.44, 0.17, 1.7, 0, 0, 1.0, jaw);
+    for (let i = 0; i < 8; i++) for (const s of [-1, 1]) { coneM(white, 0.05, 0.22, s * 0.35, 0.15, 0.6 + i * 0.26, Math.PI, 0, 0, jaw, 4); coneM(white, 0.05, 0.22, s * 0.4, -0.36, 0.6 + i * 0.27, 0, 0, 0, head, 4); }
+    for (const s of [-1, 1]) { ell(glow('#ffb300'), 0.12, 0.12, 0.08, s * 0.72, 0.28, 0.7, head).castShadow = false; }
+    for (const s of [-1, 1]) { const a = new THREE.Group(); a.position.set(s * 1.0, 0.8, 2.4); body.add(a); cyl(skin, 0.2, 0.13, 1.4, 0, -0.6, 0.3, a, 6).rotation.x = -0.5; for (let k = -1; k <= 1; k++) coneM(white, 0.05, 0.4, k * 0.12, -1.2, 0.8, 0.6, 0, 0, a, 4); legs.push({ arm: a }); }
+    for (const s of [-1, 1]) legs.push(legRig(body, skin, s * 1.2, -0.3, -0.3, 1.5, 1.45, 0.75, skin, 3));
+    tails.push(...tailChain(body, skin, 8, 1.0, 1.3, 0, 0.2, -2.7, 0.12));
   } else { // brachio (décor)
     base = 5.6; body.position.y = base; topY = 16;
     ell(skin, 3.2, 3.0, 6.5, 0, 0.5, 0, body);
@@ -496,7 +562,8 @@ export function makeDino(kind) {
   const starG = stars(root, topY + 1.2);
   let phase = Math.random() * 10, tt = Math.random() * 10;
 
-  function update(dt, anim, wobble) {
+  let lastLift = 0;
+  function update(dt, anim, wobble, lift = 0) {
     tt += dt;
     const run = anim === 2, walk = anim === 1 || run, stunned = anim === 3;
     const rate = stunned ? 0 : run ? (kind === 'raptor' ? 14 : 9) : walk ? (kind === 'brachio' ? 2 : 4.2) : 0;
@@ -509,6 +576,21 @@ export function makeDino(kind) {
       l.hip.rotation.x = stunned ? 0.1 : sw * A;
       l.knee.rotation.x = stunned ? 0 : Math.max(0, Math.sin(phase + off + 1.3)) * A * 0.9;
     });
+    if (aq) {
+      const sw = stunned ? 0.4 : walk ? 5.5 : 2;
+      tails.forEach((s, i) => { s.rotation.y = Math.sin(tt * sw - i * 0.6) * (stunned ? 0.03 : 0.12 + i * 0.03); s.rotation.x = 0; });
+      fl.forEach((f) => { f.g.rotation.z = f.s * (0.3 + Math.sin(tt * (walk ? 6 : 2.2) + f.ph) * 0.35); f.g.rotation.x = Math.cos(tt * (walk ? 6 : 2.2) + f.ph) * 0.25; });
+      const dl = dt > 0 ? (lift - lastLift) / dt : 0; lastLift = lift;
+      body.position.y = base + Math.sin(tt * 1.6) * 0.12;
+      body.rotation.x = stunned ? 0 : -Math.max(-0.7, Math.min(0.7, dl * 0.16));
+      body.rotation.z = stunned ? Math.PI * 0.88 : 0;
+      if (necks) necks.forEach((n, i) => { n.rotation.x = n.userData.b + Math.sin(tt * 1.3 - i * 0.5) * (stunned ? 0.02 : 0.1); });
+      if (head) { head.rotation.x = stunned ? 0.3 : Math.sin(tt * 1.2) * 0.05; head.rotation.y = stunned ? Math.sin(tt * 2) * 0.3 : 0; }
+      if (jaw) jaw.rotation.x = wobble > 0 ? 0.6 + Math.sin(tt * 30) * 0.12 : stunned ? 0.3 : 0.05 + Math.max(0, Math.sin(tt * 0.9)) * 0.06;
+      starG.visible = stunned;
+      if (stunned) starG.children.forEach((s) => { s.userData.a += dt * 5; s.position.set(Math.cos(s.userData.a) * 1.6, Math.sin(s.userData.a * 2) * 0.2, Math.sin(s.userData.a) * 1.6); s.rotation.y += dt * 6; });
+      return;
+    }
     tails.forEach((s, i) => { s.rotation.y = Math.sin(tt * (run ? 6 : 1.6) - i * 0.55) * (stunned ? 0.04 : 0.1 + i * 0.015); s.rotation.x = stunned ? 0.04 : Math.sin(tt * 1.3 - i * 0.4) * 0.02; });
     body.position.y = base + (walk ? Math.abs(Math.sin(phase)) * 0.18 * (run ? 1.6 : 1) : Math.sin(tt * 1.8) * 0.04);
     body.rotation.z = stunned ? Math.sin(tt * 5) * 0.09 : 0;

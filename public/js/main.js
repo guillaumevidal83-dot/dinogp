@@ -4,6 +4,7 @@ import * as M from './models.js';
 import { Fx } from './fx.js';
 import { Sfx } from './audio.js';
 import { disposeScene } from './util.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const S = window.Shared;
 const $ = (id) => document.getElementById(id);
@@ -74,15 +75,62 @@ setInterval(() => { if (net.open) send({ t: 'ping', c: Date.now() }); }, 15000);
 /* ===================== Interface : garage ===================== */
 const CH_ICONS = ['🤠', '👩‍🔬', '👴', '🧔', '🦖', '👧'];
 const VEH_ICONS = ['🚙', '🏎️', '🛻', '🏍️', '🪨'];
+
+/* ===== Miniatures fidèles : rendues depuis les vrais modèles 3D ===== */
+let thumbEnv = null;
+function renderThumb(obj, dir, fov = 28, size = 112) {
+  const sc = new THREE.Scene();
+  if (!thumbEnv) { const pm = new THREE.PMREMGenerator(renderer); thumbEnv = pm.fromScene(new RoomEnvironment(), 0.04).texture; pm.dispose(); }
+  sc.environment = thumbEnv;
+  const key = new THREE.DirectionalLight(0xfff2dc, 2.2); key.position.set(4, 7, 6); sc.add(key);
+  sc.add(new THREE.HemisphereLight(0xbfd8ff, 0x2a3a2a, 0.7));
+  sc.add(obj);
+  const box = new THREE.Box3().setFromObject(obj), c = box.getCenter(new THREE.Vector3()), r = box.getSize(new THREE.Vector3()).length() * 0.5;
+  const cam = new THREE.PerspectiveCamera(fov, 1, 0.1, 300);
+  cam.position.copy(c).addScaledVector(dir.clone().normalize(), r / Math.sin((fov * Math.PI) / 360) * 1.02);
+  cam.lookAt(c);
+  const rt = new THREE.WebGLRenderTarget(size, size, { samples: 4 });
+  rt.texture.colorSpace = THREE.SRGBColorSpace;
+  const oc = new THREE.Color(); renderer.getClearColor(oc); const oa = renderer.getClearAlpha();
+  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(sc, cam);
+  const px = new Uint8Array(size * size * 4); renderer.readRenderTargetPixels(rt, 0, 0, size, size, px);
+  renderer.setRenderTarget(null); renderer.setClearColor(oc, oa); rt.dispose();
+  const cv = document.createElement('canvas'); cv.width = cv.height = size;
+  const g = cv.getContext('2d'), id = g.createImageData(size, size);
+  for (let y = 0; y < size; y++) id.data.set(px.subarray((size - 1 - y) * size * 4, (size - y) * size * 4), y * size * 4);
+  g.putImageData(id, 0, 0);
+  disposeScene(obj);
+  return cv.toDataURL('image/png');
+}
+function makeThumbs() {
+  const th = { ch: [], veh: [] };
+  try {
+    for (let i = 0; i < S.CHARS.length; i++) {
+      const d = M.makeDriver(i); d.scale.setScalar(1);
+      const g = new THREE.Group(); g.add(d);
+      // gros plan sur la tête et le buste
+      const head = new THREE.Group(); head.add(g);
+      const box = new THREE.Box3(); box.setFromObject(d);
+      th.ch.push(renderThumb(g, new THREE.Vector3(0.35, 0.18, 1), 24));
+    }
+    for (let i = 0; i < S.VEHS.length; i++) {
+      const k = M.makeKart(i, S.COLORS[0]);
+      th.veh.push(renderThumb(k.root, new THREE.Vector3(1, 0.55, 1.1), 30));
+    }
+  } catch (e) { console.warn('miniatures', e); return null; }
+  return th;
+}
+
 function buildGarage() {
+  const TH = makeThumbs();
   $('inName').value = G.name;
   const chars = $('chars'), vehs = $('vehs'), cols = $('cols');
   S.CHARS.forEach((c, i) => {
-    const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = '<span class="ic">' + CH_ICONS[i] + '</span>' + c.name;
+    const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = (TH ? '<img class="ic" alt="" src="' + TH.ch[i] + '">' : '<span class="ic">' + CH_ICONS[i] + '</span>') + c.name;
     b.onclick = () => { G.ch = i; garageChanged(); }; chars.appendChild(b);
   });
   S.VEHS.forEach((v, i) => {
-    const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = '<span class="ic">' + VEH_ICONS[i] + '</span>' + v.name.split(' ')[0];
+    const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = (TH ? '<img class="ic" alt="" src="' + TH.veh[i] + '">' : '<span class="ic">' + VEH_ICONS[i] + '</span>') + v.name.split(' ')[0];
     b.onclick = () => { G.veh = i; garageChanged(); }; vehs.appendChild(b);
   });
   S.COLORS.forEach((c, i) => {
@@ -427,7 +475,7 @@ function onHit(m) {
 function onItem(m) {
   const had = R.itemShow.item;
   R.itemShow = { item: m.item || null, n: m.n | 0, at: performance.now() + (m.item && !had ? 1100 : 0) };
-  if (m.item && !had) { sfx.play('pickup', 0.8); const hi = $('hItem'); hi.classList.remove('pop'); void hi.offsetWidth; hi.classList.add('pop'); }
+  if (m.item && !had) { addFeed('<b>' + S.ITEMS[m.item].icon + ' ' + S.ITEMS[m.item].name + '</b> — ' + S.ITEMS[m.item].desc); sfx.play('pickup', 0.8); const hi = $('hItem'); hi.classList.remove('pop'); void hi.offsetWidth; hi.classList.add('pop'); }
   updateItemUI();
 }
 function updateItemUI() {
@@ -552,7 +600,7 @@ function stepPhysics(dt) {
   P.vx += (f[0] * P.sp - P.vx) * k; P.vz += (f[1] * P.sp - P.vz) * k;
   P.x += P.vx * dt; P.z += P.vz * dt;
   // murs naturels
-  const L = hw + 15;
+  const L = hw + (R.map.wall || 15);
   const lat2 = (P.x - T.x[idx]) * T.rx[idx] + (P.z - T.z[idx]) * T.rz[idx];
   if (Math.abs(lat2) > L) {
     const s = Math.sign(lat2), over = Math.abs(lat2) - L;
@@ -648,10 +696,21 @@ function raceFrame(dt, now) {
     const s = sampleBuf(d.buf, rt);
     if (!s) { d.model.root.visible = false; continue; }
     d.model.root.visible = true;
-    d.x = s.x; d.z = s.z; d.model.root.position.set(s.x, 0, s.z);
+    d.x = s.x; d.z = s.z;
+    let dy = 0, lift = 0;
+    if (R.world.th.sea) {
+      const wy = R.world.th.waterY, k = d.k;
+      if (k === 'mosa' || k === 'plesio' || k === 'ichthy') {
+        // nage dans l'eau, bondit au-dessus de la piste quand il la traverse
+        const dd = R.world.dist(s.x, s.z) - R.T.halfW;
+        lift = clamp((8 - dd) / 8, 0, 1); lift = lift * lift * (3 - 2 * lift);
+        dy = wy + 0.4 + lift * (k === 'ichthy' ? 3.6 : k === 'mosa' ? 3.2 : 2.4);
+      } else dy = Math.min(0, R.world.heightAt(s.x, s.z));
+    }
+    d.model.root.position.set(s.x, dy, s.z);
     d.model.root.rotation.y = s.h;
     if (d.roar > 0) d.roar -= dt;
-    d.model.update(dt, Math.round(s.a), d.roar);
+    d.model.update(dt, Math.round(s.a), d.roar, lift);
   }
   // projectiles
   for (const p of R.proj.values()) {
@@ -662,7 +721,7 @@ function raceFrame(dt, now) {
     if (p.type === 'rock') p.mesh.rotation.z += dt * 6;
     if (p.type === 'egg') { R.fx.trail(p.mesh.position.x, 1.3, p.mesh.position.z, [1, 0.8, 0.3, 0.8]); p.mesh.rotation.x = 0; }
     if (p.type === 'dart') R.fx.trail(p.mesh.position.x, 1.3, p.mesh.position.z, [0.5, 1, 0.4, 0.7]);
-    if (p.type === 'bone') { const ring = p.mesh.userData.ring; if (ring) ring.material.opacity = 0.35 + Math.sin(now / 160) * 0.2; }
+    if (p.type === 'bone') { const ring = p.mesh.userData.ring; if (ring) ring.material.opacity = 0.35 + Math.sin(now / 160) * 0.2; const sk = p.mesh.userData.skull; if (sk) sk.position.y = 3.4 + Math.sin(now / 260) * 0.35; }
   }
   // météorites
   for (let i = R.meteors.length - 1; i >= 0; i--) {

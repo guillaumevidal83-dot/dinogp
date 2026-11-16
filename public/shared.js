@@ -43,7 +43,7 @@
     rock: { name: 'Rocher', icon: '🪨', n: 1, desc: 'Lance un rocher droit devant' },
     dart: { name: 'Fléchettes', icon: '💉', n: 3, desc: '3 fléchettes tranquillisantes' },
     egg: { name: 'Œuf chercheur', icon: '🥚', n: 1, desc: 'Poursuit une cible' },
-    bone: { name: 'Piège à os', icon: '🦴', n: 1, desc: 'Pose un piège derrière toi' },
+    bone: { name: 'Piège à os', icon: '🦴', n: 1, desc: 'Pose un piège sur la route : qui roule dessus tourne sur lui-même (dinos aussi)' },
     turbo: { name: 'Turbo', icon: '🔥', n: 1, desc: 'Gros coup d\'accélérateur' },
     shield: { name: 'Bouclier', icon: '🛡️', n: 1, desc: 'Bloque un coup' },
     meteor: { name: 'Météorite', icon: '☄️', n: 1, desc: 'Écrase le premier' },
@@ -56,6 +56,10 @@
     anky: { name: 'Ankylosaure', r: 3.0, beh: 'cross', spd: 4.2 },
     raptor: { name: 'Vélociraptor', r: 1.9, beh: 'patrol', spd: 24 },
     trex: { name: 'T-Rex', r: 4.5, beh: 'ambush', spd: 21 },
+    mosa: { name: 'Mosasaure', r: 4.4, beh: 'cross', spd: 12 },
+    plesio: { name: 'Plésiosaure', r: 3.6, beh: 'cross', spd: 6.2 },
+    ichthy: { name: 'Ichtyosaure', r: 2.1, beh: 'patrol', spd: 26 },
+    spino: { name: 'Spinosaure', r: 4.5, beh: 'ambush', spd: 21 },
   };
 
   /* ---------- Cartes ---------- */
@@ -133,6 +137,20 @@
         water: 0x1f9bb0, waterY: -1.2, hill: 22, lake: 1.0, curb: ['#ffffff', '#e63946'],
         decor: [['palm', 600, 12, 150], ['rock', 260, 10, 160], ['bush', 400, 8, 80], ['cycad', 160, 12, 100]],
         edge: 'bush', mount: 0x587a6a, mountSnow: false, herd: 5, ptero: 6,
+      },
+    },
+    lagoon: {
+      id: 'lagoon', name: 'Lagon des Abysses', desc: 'Une piste de bois sur l\'océan ! Mosasaures bondissants, plésiosaures et spinosaures.',
+      R: 330, sx: 1.15, sz: 0.9, harm: [[2, 0.15, 1.0], [3, 0.14, 2.4], [5, 0.07, 0.8], [7, 0.028, 2.2]], width: 28, grip: 0.9, wall: 5.5,
+      dinos: [
+        { k: 'ichthy', s: 0.06, L: 80 }, { k: 'plesio', s: 0.16 }, { k: 'spino', s: 0.27, side: -1 }, { k: 'mosa', s: 0.37 },
+        { k: 'ichthy', s: 0.49, L: 100 }, { k: 'spino', s: 0.6, side: 1 }, { k: 'mosa', s: 0.71 }, { k: 'plesio', s: 0.81 }, { k: 'mosa', s: 0.91 },
+      ],
+      theme: {
+        sunEl: 26, sunAz: 100, turb: 3.2, ray: 1.4, mie: 0.006, exp: 0.55,
+        fog: 0xa9d6e6, fogD: 0.0013, gA: '#dcc994', gB: '#c2b07a', gC: '#ecdca8', road: 'asphalt', roadCol: '#3c4650',
+        water: 0x0b8fb0, waterY: -1.4, hill: 0, lake: 0, sea: true, curb: ['#ffffff', '#e63946'],
+        decor: [], edge: null, mount: 0x4f7d78, mountSnow: false, herd: 0, ptero: 6,
       },
     },
   };
