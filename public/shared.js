@@ -29,11 +29,11 @@
 
   /* ---------- Véhicules ---------- */
   const VEHS = [
-    { id: 'jeep', name: 'Jeep Safari', desc: 'Polyvalente', max: 57, acc: 27, turn: 1.0, grip: 6.5, mass: 1.0, off: 0.55 },
-    { id: 'buggy', name: 'Buggy Éclair', desc: 'Vitesse de pointe', max: 63, acc: 22, turn: 0.9, grip: 5.8, mass: 0.8, off: 0.5 },
-    { id: 'monster', name: 'Monster Truck', desc: 'Lourd, passe partout', max: 53, acc: 21, turn: 0.82, grip: 6.2, mass: 1.7, off: 0.85 },
-    { id: 'quad', name: 'Quad Raptor', desc: 'Agile et nerveux', max: 55, acc: 35, turn: 1.2, grip: 7.0, mass: 0.7, off: 0.6 },
-    { id: 'stone', name: 'Pierrafeu Mobile', desc: 'Dérapages explosifs', max: 51, acc: 29, turn: 1.1, grip: 4.6, mass: 1.2, off: 0.62 },
+    { id: 'jeep', boat: 'Canot safari', name: 'Jeep Safari', desc: 'Polyvalente', max: 41, acc: 22, turn: 1.0, grip: 6.5, mass: 1.0, off: 0.55 },
+    { id: 'buggy', boat: 'Hors-bord éclair', name: 'Buggy Éclair', desc: 'Vitesse de pointe', max: 45, acc: 18, turn: 0.9, grip: 5.8, mass: 0.8, off: 0.5 },
+    { id: 'monster', boat: 'Catamaran monster', name: 'Monster Truck', desc: 'Lourd, passe partout', max: 38, acc: 17, turn: 0.82, grip: 6.2, mass: 1.7, off: 0.85 },
+    { id: 'quad', boat: 'Jet-ski raptor', name: 'Quad Raptor', desc: 'Agile et nerveux', max: 40, acc: 28, turn: 1.2, grip: 7.0, mass: 0.7, off: 0.6 },
+    { id: 'stone', boat: 'Pirogue de pierre', name: 'Pierrafeu Mobile', desc: 'Dérapages explosifs', max: 37, acc: 23, turn: 1.1, grip: 4.6, mass: 1.2, off: 0.62 },
   ];
 
   const COLORS = ['#d62828', '#f77f00', '#fcbf49', '#2a9d8f', '#1d70c8', '#6a4c93', '#e56b9f', '#f1f1f1', '#222831', '#7cb518'];
@@ -51,15 +51,15 @@
 
   /* ---------- Dinosaures ---------- */
   const DINOS = {
-    trice: { name: 'Tricératops', r: 3.4, beh: 'cross', spd: 5.8 },
-    stego: { name: 'Stégosaure', r: 3.3, beh: 'cross', spd: 4.6 },
-    anky: { name: 'Ankylosaure', r: 3.0, beh: 'cross', spd: 4.2 },
-    raptor: { name: 'Vélociraptor', r: 1.9, beh: 'patrol', spd: 24 },
-    trex: { name: 'T-Rex', r: 4.5, beh: 'ambush', spd: 21 },
-    mosa: { name: 'Mosasaure', r: 4.4, beh: 'cross', spd: 12 },
-    plesio: { name: 'Plésiosaure', r: 3.6, beh: 'cross', spd: 6.2 },
-    ichthy: { name: 'Ichtyosaure', r: 2.1, beh: 'patrol', spd: 26 },
-    spino: { name: 'Spinosaure', r: 4.5, beh: 'ambush', spd: 21 },
+    trice: { name: 'Tricératops', r: 3.4, beh: 'cross', spd: 4.1 },
+    stego: { name: 'Stégosaure', r: 3.3, beh: 'cross', spd: 3.2 },
+    anky: { name: 'Ankylosaure', r: 3.0, beh: 'cross', spd: 2.9 },
+    raptor: { name: 'Vélociraptor', r: 1.9, beh: 'patrol', spd: 16.8 },
+    trex: { name: 'T-Rex', r: 4.5, beh: 'ambush', spd: 14.7 },
+    mosa: { name: 'Mosasaure', r: 4.4, beh: 'cross', spd: 8.4 },
+    plesio: { name: 'Plésiosaure', r: 3.6, beh: 'cross', spd: 4.3 },
+    ichthy: { name: 'Ichtyosaure', r: 2.1, beh: 'patrol', spd: 18.2 },
+    spino: { name: 'Spinosaure', r: 4.5, beh: 'ambush', spd: 14.7 },
   };
 
   /* ---------- Cartes ---------- */

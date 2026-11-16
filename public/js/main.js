@@ -103,7 +103,7 @@ function renderThumb(obj, dir, fov = 28, size = 112) {
   return cv.toDataURL('image/png');
 }
 function makeThumbs() {
-  const th = { ch: [], veh: [] };
+  const th = { ch: [], veh: [], boat: [] };
   try {
     for (let i = 0; i < S.CHARS.length; i++) {
       const d = M.makeDriver(i); d.scale.setScalar(1);
@@ -116,6 +116,7 @@ function makeThumbs() {
     for (let i = 0; i < S.VEHS.length; i++) {
       const k = M.makeKart(i, S.COLORS[0]);
       th.veh.push(renderThumb(k.root, new THREE.Vector3(1, 0.55, 1.1), 30));
+      th.boat.push(renderThumb(M.makeKart(i, S.COLORS[0], true).root, new THREE.Vector3(1, 0.55, 1.1), 30, 80));
     }
   } catch (e) { console.warn('miniatures', e); return null; }
   return th;
@@ -130,7 +131,7 @@ function buildGarage() {
     b.onclick = () => { G.ch = i; garageChanged(); }; chars.appendChild(b);
   });
   S.VEHS.forEach((v, i) => {
-    const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = (TH ? '<img class="ic" alt="" src="' + TH.veh[i] + '">' : '<span class="ic">' + VEH_ICONS[i] + '</span>') + v.name.split(' ')[0];
+    const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = (TH ? '<span class="icw"><img class="ic" alt="" src="' + TH.veh[i] + '"><img class="bt" alt="" title="' + v.boat + '" src="' + TH.boat[i] + '"></span>' : '<span class="ic">' + VEH_ICONS[i] + '</span>') + v.name.split(' ')[0];
     b.onclick = () => { G.veh = i; garageChanged(); }; vehs.appendChild(b);
   });
   S.COLORS.forEach((c, i) => {
@@ -792,7 +793,7 @@ function updateCamera(dt, speed, now) {
   camera.position.set(P.x - sx * dist + (Math.random() - 0.5) * sh * 0.7, height + R.sy + (Math.random() - 0.5) * sh * 0.6, P.z - sz * dist + (Math.random() - 0.5) * sh * 0.7);
   const f = S.fwd(P.h);
   camera.lookAt(P.x + f[0] * 6, 1.8 + R.sy, P.z + f[1] * 6);
-  const targetFov = 62 + clamp(speed / 60, 0, 1.1) * 14 + (P.boostT > 0 ? 9 : 0);
+  const targetFov = 62 + clamp(speed / 45, 0, 1.1) * 14 + (P.boostT > 0 ? 9 : 0);
   camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 4);
   camera.updateProjectionMatrix();
 }
