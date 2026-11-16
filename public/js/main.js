@@ -135,6 +135,7 @@ function setMode(m) {
   G.mode = m;
   const menu = m === 'menu', lobby = m === 'lobby';
   $('ui').classList.toggle('hide', !(menu || lobby));
+  $('mobPlay').style.visibility = menu ? '' : 'hidden';
   $('scr-menu').classList.toggle('hide', !menu);
   $('scr-lobby').classList.toggle('hide', !lobby);
   $('hud').classList.toggle('hide', m !== 'race' && m !== 'results');
@@ -795,6 +796,7 @@ function showResults(m) {
 function bindUI() {
   $('inName').addEventListener('input', (e) => { G.name = e.target.value.slice(0, 14); saveProf(); });
   $('inName').addEventListener('change', () => { send({ t: 'prof', name: G.name || 'Pilote' }); });
+  $('btnSolo2').onclick = () => $('btnSolo').onclick();
   $('btnSolo').onclick = () => { sfx.init(); sfx.play('click'); send({ t: 'hello', name: G.name || 'Pilote', ch: G.ch, veh: G.veh, col: G.col }); send({ t: 'create', solo: 1, bots: +$('soloBots').value, map: S.MAP_IDS[(Math.random() * S.MAP_IDS.length) | 0] }); };
   $('btnCreate').onclick = () => { sfx.init(); sfx.play('click'); send({ t: 'hello', name: G.name || 'Pilote', ch: G.ch, veh: G.veh, col: G.col }); send({ t: 'create', pub: true, bots: 2 }); };
   $('btnJoin').onclick = () => { const c = $('inCode').value.trim().toUpperCase(); if (c.length === 4) { sfx.init(); send({ t: 'hello', name: G.name || 'Pilote', ch: G.ch, veh: G.veh, col: G.col }); send({ t: 'join', code: c }); } };
