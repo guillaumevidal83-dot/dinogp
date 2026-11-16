@@ -150,7 +150,7 @@
         sunEl: 26, sunAz: 100, turb: 3.2, ray: 1.4, mie: 0.006, exp: 0.55,
         fog: 0xa9d6e6, fogD: 0.0013, gA: '#dcc994', gB: '#c2b07a', gC: '#ecdca8', road: 'asphalt', roadCol: '#3c4650',
         water: 0x0b8fb0, waterY: -1.4, hill: 0, lake: 0, sea: true, curb: ['#ffffff', '#e63946'],
-        decor: [], edge: null, mount: 0x4f7d78, mountSnow: false, herd: 0, ptero: 6,
+        decor: [], edge: null, mount: 0x3f6f64, mountK: 0.4, mountSnow: false, herd: 0, ptero: 6,
       },
     },
   };

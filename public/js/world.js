@@ -541,7 +541,7 @@ export function buildWorld(renderer, mapId, q) {
     const n = 20, mm = new THREE.InstancedMesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true }), n);
     const m4 = new THREE.Matrix4(), qt = new THREE.Quaternion(), ps = new THREE.Vector3(), sc = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * TAU + rnd() * 0.2, rad = 1050 + rnd() * 350, w = 260 + rnd() * 240, hgt = 200 + rnd() * 260;
+      const a = (i / n) * TAU + rnd() * 0.2, rad = 1050 + rnd() * 350, w = 260 + rnd() * 240, hgt = (200 + rnd() * 260) * (th.mountK || 1);
       qt.setFromAxisAngle(up, rnd() * TAU); ps.set(Math.cos(a) * rad, -10, Math.sin(a) * rad); sc.set(w, hgt, w * (0.8 + rnd() * 0.4));
       m4.compose(ps, qt, sc); mm.setMatrixAt(i, m4);
     }
